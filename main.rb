@@ -112,6 +112,10 @@ class MainWindow < Gtk::Window
       	sw.add(iconview)
       	self.add(sw)
       	iconview.grab_focus
+      	
+      	provider = Gtk::CssProvider.new
+      	provider.load(:data => "style.css")
+      	apply_css(self, provider)
 	end
 
 	def apply_css(widget, provider)
