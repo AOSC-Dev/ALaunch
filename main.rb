@@ -13,27 +13,6 @@ end
 class MainWindow < Gtk::Window
 	COL_PATH, COL_DISPLAY_NAME, COL_IS_DIR, COL_PIXBUF = (0..3).to_a
 	 
-	def solve_desktop(filename,want)
-		
-		
-		case want
-		when "NAME"
-			return name
-		when "ICON"
-		begin
-			icon_px = Gdk::Pixbuf.new(icon) if File.ftype(filename) != "directory"
-			icon_px = @file_pixbuf if icon == nil
-			icon_px = @folder_pixbuf if File.ftype(filename) == "directory"
-			rescue Exception
-				return @file_pixbuf
-			else
-     			return icon_px
-		end
-		when "EXEC"
-			return exec
-		end
-	end
-	 
 	def find_file(basename)
     	%w(. /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
     	  	path = File.join(dirname, basename)
