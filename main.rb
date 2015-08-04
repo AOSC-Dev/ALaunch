@@ -14,26 +14,7 @@ class MainWindow < Gtk::Window
 	COL_PATH, COL_DISPLAY_NAME, COL_IS_DIR, COL_PIXBUF = (0..3).to_a
 	 
 	def solve_desktop(filename,want)
-		file = File.open(filename)
 		
-		while line  = file.gets
-        	case line.split("=")[0]
-        	when "Name"
-        		name = line.split("=")[1]
-        	when "Icon"
-        		foo = line.split("=")
-        		bar = foo[1]
-        		bar[-1] = "."
-        		icon = find_file(bar + "svg")
-        	when "Exec"
-        		exec = line.split("=")[1]
-			end
-		end if File.ftype(filename) != "directory"
-		name = File.basename(filename) if File.ftype(filename)=="directory"
-
-		if name==nil
-			name = File.basename(filename, ".desktop")
-		end
 		
 		case want
 		when "NAME"
@@ -68,12 +49,41 @@ class MainWindow < Gtk::Window
 		@store.clear
 		Dir.glob(File.join(@parent, "*")).each do |path|
         	is_dir = FileTest.directory?(path)
+        	if File.ftype(path) != "directory"
+        		file = File.open(path) 
+				while line  = file.gets
+        			case line.split("=")[0]
+        			when "Name"
+        				name = line.split("=")[1]
+        			when "Icon"
+        				foo = line.split("=")
+        				bar = foo[1]
+        				bar[-1] = "."
+        				icon = find_file(bar + "svg")
+        			when "Exec"
+        				exec = line.split("=")[1]
+        			end
+				end
+			end
+			name = File.basename(path) if File.ftype(path)=="directory"
+			if name==nil
+				name = File.basename(path, ".desktop")
+			end
+			
+			begin
+			icon_px = Gdk::Pixbuf.new(icon) if File.ftype(path) != "directory"
+			icon_px = @file_pixbuf if icon == nil
+			icon_px = @folder_pixbuf if File.ftype(path) == "directory"
+			rescue Exception
+				icon_px = @file_pixbuf
+			end
+			
         	iter = @store.append
-        	filename = GLib.filename_to_utf8(path)
-        	iter[COL_DISPLAY_NAME] = solve_desktop(filename,"NAME")
+        	path = GLib.filename_to_utf8(path)
+        	iter[COL_DISPLAY_NAME] = name
         	iter[COL_PATH] = path
         	iter[COL_IS_DIR] = is_dir
-        	iter[COL_PIXBUF] = solve_desktop(filename,"ICON")
+        	iter[COL_PIXBUF] = icon_px
       	end
     end
 	
