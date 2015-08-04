@@ -107,13 +107,14 @@ class MainWindow < Gtk::Window
         	iter = @store.get_iter(path)
 			if File.ftype(iter[COL_PATH]) != "directory"
 				system("gtk-launch "+File.basename(iter[COL_PATH], ".desktop"))
+				Gtk.main_quit
         	elsif iter[COL_DISPLAY_NAME]
           		@parent = iter[COL_PATH]
           		fill_store
         	end
       	end
       	box = Gtk::Box.new(:vertical,64)
-      	box.pack_start(iconview,false,true,32)
+      	box.pack_start(iconview, :expand => false, :fill => true, :padding => 32)
       	sw.add(box)
       	self.add(sw)
       	iconview.grab_focus
@@ -126,6 +127,8 @@ class MainWindow < Gtk::Window
       	end
       	provider.load(:data => css)
       	apply_css(self, provider)
+      	
+      	self.fullscreen
 	end
 
 	def apply_css(widget, provider)
