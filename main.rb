@@ -1,3 +1,4 @@
+#!/bin/ruby
 require 'gtk3'
 
 class ALaunch
@@ -94,10 +95,12 @@ class MainWindow < Gtk::Window
       	
       	sw = Gtk::ScrolledWindow.new
       	sw.shadow_type = :etched_in
-      	sw.set_policy(:automatic, :automatic)
+      	sw.set_policy(:automatic, :never)
       	
       	iconview = Gtk::IconView.new(@store)
-      	iconview.selection_mode = :multiple
+      	iconview.item_orientation = :horizontal
+      	iconview.activate_on_single_click = true
+      	iconview.selection_mode = :single
       	iconview.text_column = COL_DISPLAY_NAME
       	iconview.pixbuf_column = COL_PIXBUF
       	iconview.signal_connect("item_activated") do |iview, path|
@@ -109,12 +112,19 @@ class MainWindow < Gtk::Window
           		fill_store
         	end
       	end
-      	sw.add(iconview)
+      	box = Gtk::Box.new(:vertical,64)
+      	box.pack_start(iconview,false,true,32)
+      	sw.add(box)
       	self.add(sw)
       	iconview.grab_focus
       	
       	provider = Gtk::CssProvider.new
-      	provider.load(:data => "style.css")
+      	cssfile = File.open("./style.css")
+      	css=""
+      	while line = cssfile.gets
+      		css+=line
+      	end
+      	provider.load(:data => css)
       	apply_css(self, provider)
 	end
 
