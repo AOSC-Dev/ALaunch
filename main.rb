@@ -4,7 +4,7 @@ require 'gtk3'
 class ALaunch
 
 	def initialize()
-		@window = MainWindow.new(800,500)
+		@window = MainWindow.new()
 		@window.show_all
 		Gtk.main
 	end
@@ -22,7 +22,7 @@ class MainWindow < Gtk::Window
     	  	end
     	end
 		
-    	return find_file("gnome-fs-regular.png")
+    	return "./gnome-fs-regular.png"
   	end
 	 
 	def fill_store
@@ -31,32 +31,41 @@ class MainWindow < Gtk::Window
         	is_dir = FileTest.directory?(path)
         	if File.ftype(path) != "directory"
         		file = File.open(path) 
+        		fname = false
+        		ficon = false
+        		fexec = false
 				while line  = file.gets
         			case line.split("=")[0]
         			when "Name"
         				name = line.split("=")[1]
+        				fname = true
         			when "Icon"
         				foo = line.split("=")
         				bar = foo[1]
         				bar[-1] = "."
         				icon = find_file(bar + "svg")
+        				ficon = true
         			when "Exec"
         				exec = line.split("=")[1]
+        				fexec = true
+        			end
+        			if fname&&fexec&&ficon
+        				break
         			end
 				end
-			end
-			name = File.basename(path) if File.ftype(path)=="directory"
-			if name==nil
-				name = File.basename(path, ".desktop")
+				if name==nil
+					name = File.basename(path, ".desktop")
+				end
+			else
+				name = File.basename(path)
 			end
 			
-			begin
+			if icon.to_s==''
+				icon = "./gnome-fs-regular.png"
+			end
 			icon_px = Gdk::Pixbuf.new(icon) if File.ftype(path) != "directory"
 			icon_px = @file_pixbuf if icon == nil
 			icon_px = @folder_pixbuf if File.ftype(path) == "directory"
-			rescue Exception
-				icon_px = @file_pixbuf
-			end
 			
         	iter = @store.append
         	path = GLib.filename_to_utf8(path)
@@ -67,11 +76,13 @@ class MainWindow < Gtk::Window
       	end
     end
 	
-	def initialize(x,y)
+	def initialize()
 		super("ALaunch")
 		self.signal_connect("destroy") {
 			Gtk.main_quit
 		}
+		
+		self.fullscreen
 		
 		@file_pixbuf = Gdk::Pixbuf.new(find_file("gnome-fs-regular.png"))
       	@folder_pixbuf = Gdk::Pixbuf.new(find_file("gnome-fs-directory.png"))
@@ -90,12 +101,10 @@ class MainWindow < Gtk::Window
       	end
       	@store.set_sort_column_id(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SortType::ASCENDING)
       	fill_store
-      	set_default_size(x,y)
       	set_border_width(0)
       	
       	sw = Gtk::ScrolledWindow.new
-      	sw.shadow_type = :etched_in
-      	sw.set_policy(:automatic, :never)
+      	sw.set_policy(:automatic, :automatic)
       	
       	iconview = Gtk::IconView.new(@store)
       	iconview.item_orientation = :horizontal
@@ -113,10 +122,17 @@ class MainWindow < Gtk::Window
           		fill_store
         	end
       	end
-      	box = Gtk::Box.new(:vertical,64)
-      	box.pack_start(iconview, :expand => false, :fill => true, :padding => 32)
-      	sw.add(box)
-      	self.add(sw)
+      	box = Gtk::Box.new(:vertical,0)
+      	fixed = Gtk::Fixed.new()
+      	button_exit = Gtk::Button.new(:label => "Back", :mnemonic => nil, :stock_id => nil)
+      	button_exit.signal_connect("clicked") {
+      		Gtk.main_quit()
+      	}
+      	fixed.add(button_exit)
+      	box.pack_start(fixed, :expand => false, :fill => true, :padding => 0)
+      	sw.add(iconview)
+      	box.pack_end(sw, :expand => true, :fill => true, :padding => 0)
+      	self.add(box)
       	iconview.grab_focus
       	
       	provider = Gtk::CssProvider.new
@@ -127,8 +143,6 @@ class MainWindow < Gtk::Window
       	end
       	provider.load(:data => css)
       	apply_css(self, provider)
-      	
-      	self.fullscreen
 	end
 
 	def apply_css(widget, provider)
