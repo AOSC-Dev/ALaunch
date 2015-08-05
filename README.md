@@ -1,5 +1,5 @@
 # ALaunch
-The desktop launcher for the next generation of SESDE
+A light-weight desktop launcher 
 
 # Require
 gem:
@@ -7,3 +7,5 @@ gtk3
 
 binary:
 gtk+-3.x
+
+# Start ALaunch, start a launch

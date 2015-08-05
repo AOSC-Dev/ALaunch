@@ -1,26 +1,16 @@
 #!/bin/ruby
 require 'gtk3'
 
-class ALaunch
-
-	def initialize()
-		@window = MainWindow.new()
-		@window.show_all
-		Gtk.main
-	end
-
-end
-
 class MainWindow < Gtk::Window
 	COL_PATH, COL_DISPLAY_NAME, COL_IS_DIR, COL_PIXBUF = (0..3).to_a
 	 
 	def find_file(basename)
-    	%w(. /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
-    	  	path = File.join(dirname, basename)
-    	  	if File.exist?(path)
-    	    	return path
-    	  	end
-    	end
+		%w(. /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
+			path = File.join(dirname, basename)
+			if File.exist?(path)
+				return path
+			end
+		end
 		
     	return "./gnome-fs-regular.png"
   	end
@@ -29,7 +19,7 @@ class MainWindow < Gtk::Window
 		@store.clear
 		Dir.glob(File.join(@parent, "*")).each do |path|
         	is_dir = FileTest.directory?(path)
-        	if File.ftype(path) != "directory"
+        	if !is_dir
         		file = File.open(path) 
         		fname = false
         		ficon = false
@@ -63,9 +53,9 @@ class MainWindow < Gtk::Window
 			if icon.to_s==''
 				icon = "./gnome-fs-regular.png"
 			end
-			icon_px = Gdk::Pixbuf.new(icon) if File.ftype(path) != "directory"
+			icon_px = Gdk::Pixbuf.new(icon) if !is_dir
 			icon_px = @file_pixbuf if icon == nil
-			icon_px = @folder_pixbuf if File.ftype(path) == "directory"
+			icon_px = @folder_pixbuf if is_dir
 			
         	iter = @store.append
         	path = GLib.filename_to_utf8(path)
@@ -77,15 +67,16 @@ class MainWindow < Gtk::Window
     end
 	
 	def initialize()
-		super("ALaunch")
+		super(:toplevel)
+		set_title("ALaunch")
 		self.signal_connect("destroy") {
 			Gtk.main_quit
 		}
 		
 		self.fullscreen
 		
-		@file_pixbuf = Gdk::Pixbuf.new(find_file("gnome-fs-regular.png"))
-      	@folder_pixbuf = Gdk::Pixbuf.new(find_file("gnome-fs-directory.png"))
+		@file_pixbuf = Gdk::Pixbuf.new("gnome-fs-regular.png")
+      	@folder_pixbuf = Gdk::Pixbuf.new("gnome-fs-directory.png")
 		
 		@store = Gtk::ListStore.new(String, String, TrueClass, Gdk::Pixbuf)
 		@parent = "/usr/share/applications/"
@@ -103,8 +94,20 @@ class MainWindow < Gtk::Window
       	fill_store
       	set_border_width(0)
       	
+      	box = Gtk::Box.new(:vertical,0)
+      	self.add(box)
+      	
+      	fixed = Gtk::Fixed.new()
+      	button_exit = Gtk::Button.new(:label => "Back", :mnemonic => nil, :stock_id => nil)
+      	button_exit.signal_connect("clicked") {
+      		Gtk.main_quit()
+      	}
+      	fixed.add(button_exit)
+      	box.pack_start(fixed, :expand => false, :fill => false, :padding => 0)
+      	
       	sw = Gtk::ScrolledWindow.new
       	sw.set_policy(:automatic, :automatic)
+      	box.pack_end(sw, :expand => true, :fill => true, :padding => 0)
       	
       	iconview = Gtk::IconView.new(@store)
       	iconview.item_orientation = :horizontal
@@ -122,17 +125,8 @@ class MainWindow < Gtk::Window
           		fill_store
         	end
       	end
-      	box = Gtk::Box.new(:vertical,0)
-      	fixed = Gtk::Fixed.new()
-      	button_exit = Gtk::Button.new(:label => "Back", :mnemonic => nil, :stock_id => nil)
-      	button_exit.signal_connect("clicked") {
-      		Gtk.main_quit()
-      	}
-      	fixed.add(button_exit)
-      	box.pack_start(fixed, :expand => false, :fill => true, :padding => 0)
+      	
       	sw.add(iconview)
-      	box.pack_end(sw, :expand => true, :fill => true, :padding => 0)
-      	self.add(box)
       	iconview.grab_focus
       	
       	provider = Gtk::CssProvider.new
@@ -156,4 +150,6 @@ class MainWindow < Gtk::Window
     
 end
 
-ALaunch.new()
+@window = MainWindow.new()
+@window.show_all
+Gtk.main
