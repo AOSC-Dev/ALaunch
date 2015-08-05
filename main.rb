@@ -14,7 +14,6 @@ class MainWindow < Gtk::Window
 		else
 			return iconfile
 		end
-#		end
   	end
 	 
 	def fill_store
@@ -74,7 +73,11 @@ class MainWindow < Gtk::Window
 			Gtk.main_quit
 		}
 		
-		self.fullscreen
+		screen = Gdk::Screen.default
+		self.set_default_size(screen.width,screen.height)
+		self.set_keep_top(true)
+		self.skip_pager_hint = true
+		self.skip_taskbar_hint = true
 		
 		@file_pixbuf = Gdk::Pixbuf.new("gnome-fs-regular.png")
       	@folder_pixbuf = Gdk::Pixbuf.new("gnome-fs-directory.png")
