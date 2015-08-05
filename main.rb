@@ -1,12 +1,14 @@
 #!/bin/ruby
 require 'gtk3'
 
+module ALaunch
+
 class MainWindow < Gtk::Window
 	COL_PATH, COL_DISPLAY_NAME, COL_IS_DIR, COL_PIXBUF = (0..3).to_a
 	 
 	def find_file(basename)
-		%w(. /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
-			path = File.join(dirname, basename)
+		%w(./ /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
+			path = dirname + basename
 			if File.exist?(path)
 				return path
 			end
@@ -118,7 +120,7 @@ class MainWindow < Gtk::Window
       	iconview.signal_connect("item_activated") do |iview, path|
         	iter = @store.get_iter(path)
 			if File.ftype(iter[COL_PATH]) != "directory"
-				system("gtk-launch "+File.basename(iter[COL_PATH], ".desktop"))
+				system("gtk-launch "+File.basename(iter[COL_PATH]))
 				Gtk.main_quit
         	elsif iter[COL_DISPLAY_NAME]
           		@parent = iter[COL_PATH]
@@ -150,6 +152,9 @@ class MainWindow < Gtk::Window
     
 end
 
-@window = MainWindow.new()
+end
+
+Gtk.init
+@window = ALaunch::MainWindow.new()
 @window.show_all
 Gtk.main
