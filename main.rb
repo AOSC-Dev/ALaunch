@@ -62,12 +62,12 @@ class MainWindow < Gtk::Window
         	iter[COL_DISPLAY_NAME] = name
         	iter[COL_PATH] = path
         	iter[COL_IS_DIR] = is_dir
-        	iter[COL_PIXBUF] = icon_px
+        	iter[COL_PIXBUF] = icon_px.scale(48,48)
       	end
     end
 	
 	def initialize()
-		super(:toplevel)
+		super(:popup)
 		set_title("ALaunch")
 		self.signal_connect("destroy") {
 			Gtk.main_quit
@@ -75,7 +75,6 @@ class MainWindow < Gtk::Window
 		
 		screen = Gdk::Screen.default
 		self.set_default_size(screen.width,screen.height)
-		self.set_keep_top(true)
 		self.skip_pager_hint = true
 		self.skip_taskbar_hint = true
 		
