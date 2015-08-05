@@ -7,14 +7,14 @@ class MainWindow < Gtk::Window
 	COL_PATH, COL_DISPLAY_NAME, COL_IS_DIR, COL_PIXBUF = (0..3).to_a
 	 
 	def find_file(basename)
-		%w(./ /usr/share/gtk-3.0/demo /usr/share/icons/Numix-Circle-Light/scalable/apps/).each do |dirname|
-			path = dirname + basename
-			if File.exist?(path)
-				return path
-			end
+		begin
+		iconfile = Gtk::IconTheme.default.lookup_icon(basename, 48, 0).filename
+		rescue Exception
+			return find_file("gtk-file")
+		else
+			return iconfile
 		end
-		
-    	return "./gnome-fs-regular.png"
+#		end
   	end
 	 
 	def fill_store
@@ -33,9 +33,8 @@ class MainWindow < Gtk::Window
         				fname = true
         			when "Icon"
         				foo = line.split("=")
-        				bar = foo[1]
-        				bar[-1] = "."
-        				icon = find_file(bar + "svg")
+        				bar = foo[1][0..-2]
+        				icon = find_file(bar)
         				ficon = true
         			when "Exec"
         				exec = line.split("=")[1]
