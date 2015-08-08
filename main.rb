@@ -10,7 +10,7 @@ class MainWindow < Gtk::Window
 		begin
 		iconfile = Gtk::IconTheme.default.lookup_icon(basename, 48, 0).filename
 		rescue Exception
-			return find_file("gtk-file")
+			return "./gnome-fs-regular.png"#find_file("gtk-file")
 		else
 			return iconfile
 		end
