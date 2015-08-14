@@ -10,7 +10,7 @@ class MainWindow < Gtk::Window
 		begin
 		iconfile = Gtk::IconTheme.default.lookup_icon(basename, 48, 0).filename
 		rescue Exception
-			return "./gnome-fs-regular.png"#find_file("gtk-file")
+			return "/usr/share/ALaunch/gnome-fs-regular.png"#find_file("gtk-file")
 		else
 			return iconfile
 		end
@@ -51,7 +51,7 @@ class MainWindow < Gtk::Window
 			end
 			
 			if icon.to_s==''
-				icon = "./gnome-fs-regular.png"
+				icon = "/usr/share/ALaunch/gnome-fs-regular.png"
 			end
 			icon_px = Gdk::Pixbuf.new(icon) if !is_dir
 			icon_px = @file_pixbuf if icon == nil
@@ -78,8 +78,8 @@ class MainWindow < Gtk::Window
 		self.skip_pager_hint = true
 		self.skip_taskbar_hint = true
 		
-		@file_pixbuf = Gdk::Pixbuf.new("gnome-fs-regular.png")
-      	@folder_pixbuf = Gdk::Pixbuf.new("gnome-fs-directory.png")
+		@file_pixbuf = Gdk::Pixbuf.new("/usr/share/ALaunch/gnome-fs-regular.png")
+      	@folder_pixbuf = Gdk::Pixbuf.new("/usr/share/ALaunch/gnome-fs-directory.png")
 		
 		@store = Gtk::ListStore.new(String, String, TrueClass, Gdk::Pixbuf)
 		@parent = "/usr/share/applications/"
@@ -133,7 +133,7 @@ class MainWindow < Gtk::Window
       	iconview.grab_focus
       	
       	provider = Gtk::CssProvider.new
-      	cssfile = File.open("./style.css")
+      	cssfile = File.open("/usr/share/ALaunch/style.css")
       	css=""
       	while line = cssfile.gets
       		css+=line
