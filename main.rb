@@ -67,8 +67,9 @@ class MainWindow < Gtk::Window
     end
 	
 	def initialize()
-		super(:popup)
+		super(:toplevel)
 		set_title("ALaunch")
+		self.set_type_hint(Gdk::WindowTypeHint::DOCK)
 		self.signal_connect("destroy") {
 			Gtk.main_quit
 		}
@@ -113,7 +114,7 @@ class MainWindow < Gtk::Window
       	box.pack_end(sw, :expand => true, :fill => true, :padding => 0)
       	
       	iconview = Gtk::IconView.new(@store)
-      	iconview.item_orientation = :horizontal
+      	#iconview.item_orientation = :horizontal
       	iconview.activate_on_single_click = true
       	iconview.selection_mode = :single
       	iconview.text_column = COL_DISPLAY_NAME
