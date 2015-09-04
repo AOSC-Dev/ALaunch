@@ -1,5 +1,5 @@
 using Gtk;
-using Posix;
+using GLib;
 
 public class MainWindow : Gtk.Window {
 
@@ -8,7 +8,7 @@ public class MainWindow : Gtk.Window {
 
 	public string parent = "/usr/share/applications";
 
-	private Gtk.ListStore store = new Gtk.ListStore (4, typeof (string), typeof (string), typeof (bool), typeof (Gdk.Pixbuf));
+	private Gtk.ListStore store = new Gtk.ListStore (4, typeof (string), typeof (string), typeof (Gdk.Pixbuf), typeof(GLib.AppInfo));
 
 	private Gdk.Pixbuf find_icon (string name, IconTheme theme) {
 		try {
@@ -16,72 +16,45 @@ public class MainWindow : Gtk.Window {
 			icon_px = theme.load_icon (name, 48, Gtk.IconLookupFlags.FORCE_SVG);
 			icon_px = icon_px.scale_simple (48, 48, Gdk.InterpType.BILINEAR);
 			return icon_px;
-		} catch (Error e) { }
-		return file_pixbuf.scale_simple (48, 48, Gdk.InterpType.BILINEAR);;
+		} catch (Error e) {
+			return file_pixbuf.scale_simple (48, 48, Gdk.InterpType.BILINEAR);
+		}
 	}
 
 	private void fill_store () {
-		GLib.Dir dir;
-		string name;
-		TreeIter iter;
-		
+		string name = "";
+		string icon = "";
+		string disc = "";
+		Gdk.Pixbuf icon_px = null;
+		IconTheme theme = Gtk.IconTheme.get_default ();
+		TreeIter iter = new TreeIter ();
 		store.clear ();
 		
-		try {
-			dir = GLib.Dir.open (parent, 0);
-			name = dir.read_name ();//GLib.Dir.read_name (dir);
-
-			while (name != null) {
-				string path, display_name = "";
-				bool is_dir;
-				Gdk.Pixbuf icon_px = null;
-				IconTheme theme = Gtk.IconTheme.get_default ();
-				if (true) {//(name[0] != '.') {
-					path = GLib.Path.build_filename (parent, name);
-					is_dir = GLib.FileUtils.test (path, FileTest.IS_DIR);
-					
-					if (!is_dir) {
-						try {
-							File file = File.new_for_path (path);
-							FileInputStream @is = file.read ();
-							DataInputStream dis = new DataInputStream (@is);
-							string line;
-						
-							while ((line = dis.read_line ()) != null) {
-								string[] lines = line.split("=", 2);
-								if (lines[0] == "Name") {
-									display_name = lines[1];
-								} else if (lines[0] == "Icon") {
-									icon_px = find_icon (lines[1], theme);
-								}
-							}
-						} catch (Error e) {
-							stdout.printf ("Error: %s\n", e.message);
-						}
-					} else {
-						display_name = GLib.Path.get_basename (path);
-						icon_px = folder_pixbuf;
-					}
-					
-					if (display_name == null) {
-						display_name = GLib.Path.get_basename (path);
-					}
-					
-					store.append (out iter);
-					store.set (iter, 0, path, 1, display_name, 2, is_dir, 3, icon_px);
-				}
-				name = dir.read_name ();
+		GLib.List<GLib.AppInfo> infolist = GLib.AppInfo.get_all ();
+		infolist.foreach ((appinfo) => {
+			if (appinfo.should_show ()) {
+				name = appinfo.get_display_name ();
+				disc = "";//appinfo.get_des ();
+				icon = appinfo.get_icon ().to_string ();
+				icon_px = find_icon(icon, theme);
+				
+				store.append (out iter);
+				store.set (iter, 0, disc, 1, name, 2, icon_px, 3, appinfo);
 			}
-		} catch (Error e) {
-			stderr.printf ("Could not load directory: %s\n", e.message);
-			return;
-		}
+		});
 	}
 
 	private void icon_activate (TreePath path) {
 		TreeIter iter;
 		store.get_iter (out iter, path);
-		Posix.system("gtk-launch "+GLib.File.get_basename(iter[0]));
+		GLib.Value info_v;
+		store.get_value (iter, 3, out info_v);
+		GLib.AppInfo info = (GLib.AppInfo) info_v;
+		info.launch (null, null);
+		Gtk.main_quit ();
+	}
+	
+	public void sortf (TreeIter a, TreeIter b) {
 	}
 
 	public MainWindow() {
@@ -102,8 +75,10 @@ public class MainWindow : Gtk.Window {
 		
 		IconView iconview = new IconView ();
 		iconview.set_model (store);
+		iconview.set_activate_on_single_click (true);
+		iconview.set_selection_mode (SelectionMode.SINGLE);
 		iconview.set_text_column (1);
-		iconview.set_pixbuf_column (3);
+		iconview.set_pixbuf_column (2);
 		iconview.item_activated.connect (icon_activate);
 		
 		ScrolledWindow sw = new ScrolledWindow (null, null);
