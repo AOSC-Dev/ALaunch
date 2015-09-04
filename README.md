@@ -1,14 +1,9 @@
 # ALaunch
-A light-weight desktop launcher 
+A light-weight desktop launcher in vala
 
 # Require
-gem:
-gtk3
-
-binary:
 gtk+-3.x
 
 # Start ALaunch, start a launch
 
-! Put all the file in the /usr/share/ALaunch
-
+`make install` to make and install!
