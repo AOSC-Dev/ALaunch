@@ -57,9 +57,6 @@ public class MainWindow : Gtk.Window {
 		Gtk.main_quit ();
 	}
 	
-	public void sortf (TreeIter a, TreeIter b) {
-	}
-
 	public MainWindow() {
 		try {
 			file_pixbuf = new Gdk.Pixbuf.from_file ("/usr/share/ALaunch/gnome-fs-regular.png");
@@ -89,8 +86,16 @@ public class MainWindow : Gtk.Window {
 		sw.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
 		sw.add (iconview);
 		
-		Box box = new Box (Orientation.VERTICAL, 1);
-		box.pack_start (sw, true, true, 0);
+		Button btn = new Button ();
+		btn.set_label ("Back");
+		btn.clicked.connect (Gtk.main_quit);
+		
+		Fixed fixed = new Fixed ();
+		fixed.add (btn);
+		
+		Box box = new Box (Orientation.VERTICAL, 5);
+		box.pack_start (fixed, false, false, 0);
+		box.pack_end (sw, true, true, 0);
 		this.add (box);
 	}
 
