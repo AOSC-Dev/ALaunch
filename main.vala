@@ -6,8 +6,6 @@ public class MainWindow : Gtk.Window {
 	private Gdk.Pixbuf file_pixbuf;
     private Gdk.Pixbuf folder_pixbuf;
 
-	public string parent = "/usr/share/applications";
-
 	private Gtk.ListStore store = new Gtk.ListStore (4, typeof (string), typeof (string), typeof (Gdk.Pixbuf), typeof(GLib.AppInfo));
 
 	private Gdk.Pixbuf find_icon (string name, IconTheme theme) {
@@ -22,17 +20,18 @@ public class MainWindow : Gtk.Window {
 	}
 
 	private void fill_store () {
-		string name = "";
-		string icon = "";
-		string disc = "";
-		Gdk.Pixbuf icon_px = null;
 		IconTheme theme = Gtk.IconTheme.get_default ();
-		TreeIter iter = new TreeIter ();
 		store.clear ();
 		
 		GLib.List<GLib.AppInfo> infolist = GLib.AppInfo.get_all ();
 		infolist.foreach ((appinfo) => {
 			if (appinfo.should_show ()) {
+				TreeIter iter;
+				string name;
+				string icon;
+				string disc;
+				Gdk.Pixbuf icon_px;
+				
 				name = appinfo.get_display_name ();
 				disc = "";//appinfo.get_des ();
 				icon = appinfo.get_icon ().to_string ();
@@ -45,12 +44,16 @@ public class MainWindow : Gtk.Window {
 	}
 
 	private void icon_activate (TreePath path) {
-		TreeIter iter;
-		store.get_iter (out iter, path);
-		GLib.Value info_v;
-		store.get_value (iter, 3, out info_v);
-		GLib.AppInfo info = (GLib.AppInfo) info_v;
-		info.launch (null, null);
+		try {
+			TreeIter iter;
+			store.get_iter (out iter, path);
+			GLib.Value info_v;
+			store.get_value (iter, 3, out info_v);
+			GLib.AppInfo info = (GLib.AppInfo) info_v;
+			info.launch (null, null);
+		} catch (Error e) {
+			stderr.printf ("Could not load icon: %s\n", e.message);
+		}
 		Gtk.main_quit ();
 	}
 	
@@ -69,7 +72,7 @@ public class MainWindow : Gtk.Window {
 		this.destroy.connect (Gtk.main_quit);
 		
 		Gdk.Screen screen = Gdk.Screen.get_default ();
-		this.set_default_size (screen.width (), screen.height ());
+		this.set_default_size (screen.get_width (), screen.get_height ());
 		
 		fill_store ();
 		
