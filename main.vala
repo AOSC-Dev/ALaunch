@@ -11,11 +11,11 @@ public class MainWindow : Gtk.Window {
 	private Gdk.Pixbuf find_icon (string name, IconTheme theme) {
 		try {
 			Gdk.Pixbuf icon_px;
-			icon_px = theme.load_icon (name, 48, Gtk.IconLookupFlags.FORCE_SVG);
-			icon_px = icon_px.scale_simple (48, 48, Gdk.InterpType.BILINEAR);
+			icon_px = theme.load_icon (name, 64, Gtk.IconLookupFlags.FORCE_SVG);
+			icon_px = icon_px.scale_simple (64, 64, Gdk.InterpType.BILINEAR);
 			return icon_px;
 		} catch (Error e) {
-			return file_pixbuf.scale_simple (48, 48, Gdk.InterpType.BILINEAR);
+			return file_pixbuf.scale_simple (64, 64, Gdk.InterpType.BILINEAR);
 		}
 	}
 
@@ -73,7 +73,8 @@ public class MainWindow : Gtk.Window {
 		
 		Gdk.Screen screen = Gdk.Screen.get_default ();
 		this.set_default_size (screen.get_width (), screen.get_height ());
-		
+
+		store.set_sort_column_id (1, SortType.ASCENDING);
 		fill_store ();
 		
 		IconView iconview = new IconView ();
